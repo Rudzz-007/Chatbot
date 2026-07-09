@@ -1,0 +1,15 @@
+[theme]
+# Primary accent color for buttons, input borders, and links (Light Blue)
+primaryColor = "#007BFF"
+
+# Background color of the main content area (White)
+backgroundColor = "#E0F2FE"
+
+# Background color for sidebar and chat input boxes (Very Light Blue/Gray tint)
+secondaryBackgroundColor = "#ffffffff"
+
+# Main text color (Dark charcoal for crisp readability against white background)
+textColor = "#1E293B"
+
+# Font type
+font = "sans serif"
