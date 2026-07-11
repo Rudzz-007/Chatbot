@@ -1,6 +1,7 @@
 import streamlit as st
 import sys
 import os
+import uuid
 from langchain_core.messages import HumanMessage
 
 # Append parent folders to sys.path for robust import resolution
@@ -24,9 +25,13 @@ except ModuleNotFoundError:
 
 st.set_page_config(page_title="GenAI Research Assistant", page_icon="🤖", layout="centered")
 st.title("🤖 Advanced AI Research Assistant")
-# st.caption("Day 7: Complete Production-Ready RAG System Architecture")
+st.caption("Day 9: Dynamic State Flushing & RAG Workflow")
 
-# --- SIDEBAR: DOCUMENT INGESTION PIPELINE ---
+# Initialize a dynamic, unique thread ID for the LangGraph checkpointer if not present
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = str(uuid.uuid4())
+
+# --- SIDEBAR: DOCUMENT INGESTION & UTILITIES ---
 with st.sidebar:
     st.header("📄 Knowledge Ingestion")
     st.write("Upload a PDF document to update the assistant's local database.")
@@ -46,18 +51,27 @@ with st.sidebar:
         if st.button("⚡ Build Knowledge Index"):
             with st.spinner("Parsing text and compiling vector matrix..."):
                 try:
-                    # 1. Day 4 Parser: Extract text & split into chunks
                     chunks = process_pdf_document(temp_file_path)
-                    
-                    # 2. Day 5 Vector Store: Generate embeddings and build FAISS index
                     create_and_store_embeddings(chunks)
-                    
                     st.success("🎉 Vector Store updated! The chatbot now has access to this data.")
-                    
                     if os.path.exists(temp_file_path):
                         os.remove(temp_file_path)
                 except Exception as e:
                     st.error(f"Ingestion Pipeline Failed: {e}")
+                    
+    st.markdown("---")
+    st.header("⚙️ Session Utilities")
+    
+    # The History Reset Trigger Node
+    if st.button("🗑️ Clear Chat History", use_container_width=True):
+        # 1. Clear Streamlit frontend message log matrix
+        st.session_state.messages = [
+            {"role": "assistant", "content": "Hello! Chat history has been reset. How can I help you now?"}
+        ]
+        # 2. Assign a fresh UUID string to fork away from the previous checkpoint state
+        st.session_state.thread_id = str(uuid.uuid4())
+        st.success("Conversation context cleared completely!")
+        st.rerun()
 
 # --- MAIN CHAT INTERFACE ---
 if "messages" not in st.session_state:
@@ -74,7 +88,8 @@ if user_input := st.chat_input("Ask me anything..."):
         st.markdown(user_input)
     st.session_state.messages.append({"role": "user", "content": user_input})
     
-    config = {"configurable": {"thread_id": "streamlit_rag_session"}}
+    # Inject the dynamically unique thread ID context into LangGraph configuration
+    config = {"configurable": {"thread_id": st.session_state.thread_id}}
     initial_graph_state = {"messages": [HumanMessage(content=user_input)]}
     
     with st.spinner("Analyzing context..."):
