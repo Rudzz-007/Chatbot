@@ -12,19 +12,19 @@ VECTOR_DB_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../d
 def create_and_store_embeddings(document_chunks):
     """
     Converts raw document text chunks into vector embeddings using Gemini's embedding model
-    and indexes them inside a local highly scalable FAISS vector database instance.
+    and indexes them inside a local, highly scalable FAISS vector database instance.
     """
-    print("🧠 Initializing Gemini Vector Embedding Matrix Platform...")
-    # Using the standardized industry-grade text-embedding model from Google
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    print("[EMBED] Initializing Gemini Vector Embedding Matrix...")
+    # Updated to the current mainline active embedding model
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     
-    print("⚡ Generating vectors and building FAISS local database index architecture...")
+    print(f"[EMBED] Generating vectors for {len(document_chunks)} chunks and building FAISS index...")
     vector_store = FAISS.from_documents(document_chunks, embeddings)
     
     # Save the computed index vector mapping binaries locally to disk
     os.makedirs(VECTOR_DB_DIR, exist_ok=True)
     vector_store.save_local(VECTOR_DB_DIR)
-    print(f"💾 Vector index saved securely to disk cache at: {VECTOR_DB_DIR}")
+    print(f"[SAVED] Vector index saved securely to disk at: {VECTOR_DB_DIR}")
     
     return vector_store
 
@@ -33,10 +33,12 @@ def get_local_vector_retriever():
     Loads the locally stored FAISS database index file and exposes an operational 
     retriever node pipeline capable of running semantic text matching queries.
     """
-    if not os.path.exists(os.path.join(VECTOR_DB_DIR, "index.faiss")):
-        raise FileNotFoundError(f"No indexed database files found at {VECTOR_DB_DIR}. Ingest data first.")
+    index_path = os.path.join(VECTOR_DB_DIR, "index.faiss")
+    if not os.path.exists(index_path):
+        raise FileNotFoundError(f"No indexed database files found at {VECTOR_DB_DIR}. Please ingest a document first.")
         
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    # Updated to the current mainline active embedding model
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
     vector_store = FAISS.load_local(VECTOR_DB_DIR, embeddings, allow_dangerous_deserialization=True)
     
     # Return as an active data retriever query wrapper targeting top 3 matches

@@ -24,8 +24,8 @@ except ModuleNotFoundError:
     from src.backend.vector_store import create_and_store_embeddings
 
 st.set_page_config(page_title="GenAI Research Assistant", page_icon="🤖", layout="centered")
-st.title("🤖 Advanced AI Research Assistant")
-st.caption("Day 9: Dynamic State Flushing & RAG Workflow")
+st.title("🤖 Advanced Chatbot ")
+
 
 # Initialize a dynamic, unique thread ID for the LangGraph checkpointer if not present
 if "thread_id" not in st.session_state:
@@ -48,7 +48,7 @@ with st.sidebar:
             
         st.success(f"Uploaded: {uploaded_file.name}")
         
-        if st.button("⚡ Build Knowledge Index"):
+        if st.button("⚡ Build Knowledge Index", use_container_width=True):
             with st.spinner("Parsing text and compiling vector matrix..."):
                 try:
                     chunks = process_pdf_document(temp_file_path)
@@ -62,13 +62,10 @@ with st.sidebar:
     st.markdown("---")
     st.header("⚙️ Session Utilities")
     
-    # The History Reset Trigger Node
     if st.button("🗑️ Clear Chat History", use_container_width=True):
-        # 1. Clear Streamlit frontend message log matrix
         st.session_state.messages = [
             {"role": "assistant", "content": "Hello! Chat history has been reset. How can I help you now?"}
         ]
-        # 2. Assign a fresh UUID string to fork away from the previous checkpoint state
         st.session_state.thread_id = str(uuid.uuid4())
         st.success("Conversation context cleared completely!")
         st.rerun()
@@ -88,7 +85,6 @@ if user_input := st.chat_input("Ask me anything..."):
         st.markdown(user_input)
     st.session_state.messages.append({"role": "user", "content": user_input})
     
-    # Inject the dynamically unique thread ID context into LangGraph configuration
     config = {"configurable": {"thread_id": st.session_state.thread_id}}
     initial_graph_state = {"messages": [HumanMessage(content=user_input)]}
     

@@ -13,3 +13,11 @@ textColor = "#1E293B"
 
 # Font type
 font = "sans serif"
+
+[server]
+# Use polling watcher - avoids deep import scanning of site-packages (fixes torchvision noise)
+fileWatcherType = "poll"
+
+[runner]
+# Disable magic so Streamlit doesn't auto-import scan the entire transformers library
+magicEnabled = false
